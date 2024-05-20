@@ -86,7 +86,7 @@ public class EntityManager<E> implements DbContext<E> {
         ResultSet resultSet = preparedStatement.executeQuery();
 
         if (resultSet.next()) {
-            return createEntity(table, resultSet); //от sql-резултат правим обект от класа с който работим(Class<E> table)
+            return createEntity(table, resultSet); 
         }
         return null;
     }
