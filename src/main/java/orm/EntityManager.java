@@ -23,18 +23,11 @@ public class EntityManager<E> implements DbContext<E> {
 
     @Override
     public boolean persist(E entity) throws IllegalAccessException, SQLException {
-        Field idField = getIdField(entity.getClass());//не знаем с какво entity работим. Искаме да намерим в класа който ни е
-        // подаден в persist e има ли поле с Id-анотация в полетата на класа . Ако има искам да го върна за да мога да взема
-        //стойността на това поле.
-        //getClass() връща клас, който e рефлекшън тип и получава достъп до самата структура на класа. Тоест в рамките
-        // на Class ккласа какви методи има (getConstructors(), getFields(), getMethods), тоест мога да взема какви неща
-        // са дефинирани в рамките на класа.
-        // getClass() служи за да анализирам и оперирам в/у шаблона на класа. Шаблонът на User-a е че имам клас User,
-        //който има анотация, имам поле id, username, конструктур. МОга да кажа дай ми информацията за полето id в
-        //в конкретния подаден обект.
-
+        Field idField = getIdField(entity.getClass());
         idField.setAccessible(true);
-        Object idValue = idField.get(entity); //връщаме стойността на полето
+        
+        Object idValue = idField.get(entity); 
+        
         if (idValue == null || (long) idValue == 0) {
             return insertEntity(entity);
         } else {
@@ -43,7 +36,6 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     private boolean updateEntity(E entity, String idValue) throws SQLException {
-        //UPDATE {table_name} SET columns WHERE id = entity_id
         String tableName = getTableName(entity.getClass());
         String fieldsToSetAndCorrValues = getFieldsWithoutIdAndTheirValues(entity.getClass(), entity);
         String UpdateQuery = String.format("UPDATE %s SET %s WHERE id = %s",
@@ -62,10 +54,12 @@ public class EntityManager<E> implements DbContext<E> {
         String actualWhere = where == null ? "" : where;
         String tableName = getTableName(table);
         String query = String.format("SELECT * FROM %s %s", tableName, where);
+        
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         ResultSet resultSet = preparedStatement.executeQuery();
+        
         while (resultSet.next()) {
-            list.add(createEntity(table, resultSet)); //от sql-резултат правим обект от класа с който работим(Class<E> table)
+            list.add(createEntity(table, resultSet)); 
         }
         return list;
     }
@@ -83,6 +77,7 @@ public class EntityManager<E> implements DbContext<E> {
         String actualWhere = where == null ? "" : where;
         String tableName = getTableName(table);
         String query = String.format(SELECT_QUERY_SINGLE, tableName, actualWhere);
+        
         PreparedStatement preparedStatement = connection.prepareStatement(query);
         ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -93,8 +88,6 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     private Field getIdField(Class<?> entityClass) {
-        //за този клас трябва да взема какви са полетата, да намеря дали има поле анотирано с id-анотацията
-        //и след това да работя с предоставения обект
         Field[] declaredFields = entityClass.getDeclaredFields();
 
         for (Field declaredField : declaredFields) {
@@ -106,21 +99,19 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     private boolean insertEntity(E entity) throws SQLException {
-        //INSERT INTO {table_name} ({fields_without_id}) VALUES ({field_values_without_id})
         String tableName = getTableName(entity.getClass());
         String fieldsNamesWithoutId = getFieldsWithoutId(entity.getClass());
-        String fieldValuesWithoutId = getFieldValuesWithoutId(entity); //тук подаваме entity тъй като ни инт стойностите.
+        String fieldValuesWithoutId = getFieldValuesWithoutId(entity); 
         String INSERT_QUERY = "INSERT INTO %s(%s) VALUES (%s)";
         String query = String.format(INSERT_QUERY, tableName, fieldsNamesWithoutId, fieldValuesWithoutId);
+        
         PreparedStatement statement = this.connection.prepareStatement(query);
         return statement.executeUpdate() == 1;
     }
 
     private String getTableName(Class<?> entityClass) {
         Entity annotation = entityClass.getAnnotation(Entity.class);
-        // тук за разлика от метода getIdField(Class<?> entityClass)
-        //използваме getAnnotation, a не isAnnotationPresent(), тъй като ни интересува не само дали анотацията съществува
-        // ами и информацията от нея
+        
         if (annotation == null) {
             throw new UnsupportedOperationException("Entity must have Entity annotation");
         }
@@ -158,14 +149,7 @@ public class EntityManager<E> implements DbContext<E> {
 
     private E createEntity(Class<E> table, ResultSet resultSet) throws
             NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        //обектът се създава чрез рефлекшън. Един клас от тип Class<E> има както метод за взимане на полетата
-        //getDeclaredFields(), така и метод за взимане на конструктора (getDeclaredConstructor), като има разлика
-        //м/у getDeclaredConstructor и getConstructor
         E entity = table.getDeclaredConstructor().newInstance();
-
-        //създаваме празен обект от класа който имаме и след това добавяме
-        //елементи, защото в противен случай трябва да видим какви са вс полета, да взема вс стойности и да намерим
-        //конструктор който да има същите стойности
 
         Arrays.stream(table.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Column.class))
@@ -248,7 +232,6 @@ public class EntityManager<E> implements DbContext<E> {
 
     @Override
     public void doAlter(Class<E> entityClass) throws SQLException {
-        //ALTER TABLE table_name ADD COLUMN column_name column_type;
         String tableName = getTableName(entityClass);
         String newColumn = getNameAndTypeOfNewColumnAsString(entityClass);
         String query = String.format("ALTER TABLE %s ADD COLUMN %s;", tableName, newColumn);
