@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
-        Connector.createConnection("root", "pass", "new_db");
+        Connector.createConnection("username", "password", "new_db"); // add yours username and password
         Connection connection = Connector.getConnection();
 //        EntityManager<User> userEntityManager = new EntityManager<>(connection);
 //        boolean persistResult = userEntityManager.persist(new User("u", "p", 0, LocalDate.now()));
