@@ -44,12 +44,15 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     @Override
-    public Iterable<E> find(Class<E> table) throws SQLException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public Iterable<E> find(Class<E> table) throws SQLException, InvocationTargetException, 
+    NoSuchMethodException, InstantiationException, IllegalAccessException {
         return find(table, null);
     }
 
     @Override
-    public Iterable<E> find(Class<E> table, String where) throws SQLException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public Iterable<E> find(Class<E> table, String where) throws SQLException, InvocationTargetException, 
+    NoSuchMethodException, InstantiationException, IllegalAccessException {
+        
         List<E> list = new ArrayList<>();
         String actualWhere = where == null ? "" : where;
         String tableName = getTableName(table);
@@ -65,7 +68,8 @@ public class EntityManager<E> implements DbContext<E> {
     }
 
     @Override
-    public E findFirst(Class<E> table) throws SQLException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public E findFirst(Class<E> table) throws SQLException, InvocationTargetException, NoSuchMethodException, 
+    InstantiationException, IllegalAccessException {
         return findFirst(table, null);
     }
 
